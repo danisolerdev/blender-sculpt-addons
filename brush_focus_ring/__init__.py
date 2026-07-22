@@ -7,7 +7,7 @@ Exterior = límite de influencia (tamaño del pincel).
 import bpy
 from bpy.props import FloatProperty
 
-from . import draw, operators, preferences, ui, utils
+from . import draw, keymaps, operators, preferences, ui, utils
 
 _modules = (preferences, operators, ui)
 
@@ -31,11 +31,16 @@ def register():
             bpy.utils.register_class(cls)
     # append: se dibuja tras los popovers del pincel (Cursor, etc.).
     bpy.types.VIEW3D_HT_tool_header.append(ui.draw_header_focus)
+    keymaps.register()
 
 
 def unregister():
     # Apagar el modal si sigue vivo y limpiar el draw handler.
     utils.state["running"] = False
     draw.remove_handler()
+    keymaps.unregister()
     bpy.types.VIEW3D_HT_tool_header.remove(ui.draw_header_focus)
-    f
+    for module in reversed(_modules):
+        for cls in reversed(module.classes):
+            bpy.utils.unregister_class(cls)
+    del bpy.types.Scene.bfr_focus

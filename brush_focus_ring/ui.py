@@ -8,7 +8,7 @@ from . import utils
 class VIEW3D_PT_brush_focus_ring(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    bl_category = 'Subdiv'
+    bl_category = 'Foco'
     bl_label = 'Anillo de foco'
 
     def draw(self, context):

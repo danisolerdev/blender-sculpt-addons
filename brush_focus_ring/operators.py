@@ -1,6 +1,7 @@
 """Operador modal que sigue el ratón y activa/desactiva el dibujo."""
 
 import bpy
+from bpy.props import IntProperty
 
 from . import draw, utils
 
@@ -71,6 +72,11 @@ class SCULPT_EXT_OT_focus_ring_toggle(bpy.types.Operator):
                     event.mouse_y - region.y,
                 )
                 region.tag_redraw()
+        elif event.value in {'PRESS', 'RELEASE'} and st["in_view3d"]:
+            # Otro atajo (tamaño de pincel con +/-, foco, etc.) pudo cambiar el
+            # pincel: repintar el anillo para que refleje el nuevo radio al
+            # instante, sin esperar a mover el ratón. El evento igualmente pasa.
+            utils.tag_redraw_view3d(context)
 
         # Nunca consumir eventos: esculpir y navegar siguen funcionando.
         return {'PASS_THROUGH'}
@@ -100,4 +106,36 @@ class SCULPT_EXT_OT_focus_ring_toggle(bpy.types.Operator):
         self.report({'INFO'}, "Anillo de foco desactivado")
 
 
-classes = (SCULPT_EXT_OT_focus_ring_toggle,)
+class SCULPT_EXT_OT_focus_adjust(bpy.types.Operator):
+    """Sube o baja el foco un paso (atajo de teclado opcional)"""
+
+    bl_idname = "sculpt_ext.focus_adjust"
+    bl_label = "Ajustar foco"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    direction: IntProperty(
+        name="Dirección",
+        description="+1 sube el foco, -1 lo baja",
+        default=1,
+    )
+
+    @classmethod
+    def poll(cls, context):
+        return context.scene is not None
+
+    def execute(self, context):
+        prefs = utils.get_prefs(context)
+        step = prefs.focus_step if prefs is not None else 0.05
+        sign = 1 if self.direction >= 0 else -1
+        current = context.scene.bfr_focus
+        new_value = max(0.0, min(1.0, current + sign * step))
+        # Escribir la propiedad dispara _on_focus_update: aplica al pincel y redibuja.
+        context.scene.bfr_focus = new_value
+        self.report({'INFO'}, f"Foco: {new_value:.2f}")
+        return {'FINISHED'}
+
+
+classes = (
+    SCULPT_EXT_OT_focus_ring_toggle,
+    SCULPT_EXT_OT_focus_adjust,
+)
