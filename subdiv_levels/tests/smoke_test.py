@@ -14,7 +14,11 @@ import traceback
 import bpy
 
 # Hacer importable el paquete subdiv_levels desde la raíz del repositorio.
-_REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# El paquete vive en <repo>/subdiv_levels/, y este script en su carpeta tests/,
+# así que la raíz está tres niveles por encima de __file__.
+_REPO_ROOT = os.path.dirname(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+)
 if _REPO_ROOT not in sys.path:
     sys.path.insert(0, _REPO_ROOT)
 
