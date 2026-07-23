@@ -14,7 +14,7 @@ import sys
 import zipfile
 
 # Addons a empaquetar por defecto (los que cambiamos).
-DEFAULT_ADDONS = ("macropad_bridge", "brush_focus_ring")
+DEFAULT_ADDONS = ("brush_focus_ring",)
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 DIST = os.path.join(ROOT, "dist")
