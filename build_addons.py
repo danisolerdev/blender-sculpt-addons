@@ -1,11 +1,12 @@
-"""Empaqueta addons como zip de extension Blender (carpeta en la raiz del zip).
+"""Empaqueta addons como zip de extension Blender (manifest en la RAIZ del zip).
 
 Uso:
-    python build_addons.py                 # empaqueta todos los cambiados abajo
-    python build_addons.py macropad_bridge # empaqueta solo uno
+    python build_addons.py                 # empaqueta los addons por defecto
+    python build_addons.py subdiv_levels   # empaqueta solo uno
 
 Lee la version del blender_manifest.toml de cada addon para nombrar el zip.
-Excluye __pycache__ y archivos .pyc.
+El blender_manifest.toml queda en la raiz del zip (formato extension 4.2+),
+igual que `blender --command extension build`. Excluye __pycache__ y .pyc.
 """
 
 import os
@@ -42,7 +43,8 @@ def build(addon: str) -> str:
                 if name.endswith(".pyc"):
                     continue
                 full = os.path.join(base, name)
-                arc = os.path.relpath(full, ROOT).replace(os.sep, "/")
+                # Ruta relativa a la carpeta del addon: el manifest queda en la raiz.
+                arc = os.path.relpath(full, src).replace(os.sep, "/")
                 zf.write(full, arc)
     return out
 

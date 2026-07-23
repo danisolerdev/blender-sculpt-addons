@@ -20,7 +20,7 @@ bajar el foco y la fuerza girando una rueda, sin soltar la tableta.
 
 ## Instalación
 
-1. Localiza el zip: `dist/brush_focus_ring-0.7.4.zip`.
+1. Descarga `brush_focus_ring-0.7.4.zip` desde la pestaña **[Releases](../../../releases)** del repositorio.
 2. En Blender: **Edit → Preferences → Get Extensions**.
 3. Flecha desplegable (esquina superior derecha) → **Install from Disk…**
 4. Selecciona el zip. Se instala y activa automáticamente.

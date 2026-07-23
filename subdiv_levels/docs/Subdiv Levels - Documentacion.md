@@ -15,7 +15,7 @@ El addon **no reimplementa la subdivisión**: orquesta el modificador Multires n
 
 ## Instalación
 
-1. Localiza el zip: `dist\subdiv_levels-0.3.0.zip` (dentro de la carpeta del proyecto `addonBlender`).
+1. Descarga `subdiv_levels-0.3.0.zip` desde la pestaña **[Releases](../../../releases)** del repositorio.
 2. En Blender: **Edit → Preferences → Get Extensions**.
 3. Flecha desplegable (esquina superior derecha) → **Install from Disk…**
 4. Selecciona el zip. Se instala y activa automáticamente.

@@ -20,7 +20,7 @@ colecciones reales, también visibles en el Outliner.
 
 ## Instalación
 
-1. Localiza el zip: `dist/sculpt_subtools-0.4.0.zip`.
+1. Descarga `sculpt_subtools-0.4.0.zip` desde la pestaña **[Releases](../../../releases)** del repositorio.
 2. En Blender: **Edit → Preferences → Get Extensions**.
 3. Flecha desplegable (esquina superior derecha) → **Install from Disk…**
 4. Selecciona el zip. Se instala y activa automáticamente.

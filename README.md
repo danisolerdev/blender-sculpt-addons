@@ -27,11 +27,15 @@ pinceles) y aportan la **UX rápida** que falta para esculpir con comodidad.
 
 Cada addon se instala como una extensión independiente:
 
-1. Descarga o genera el zip del addon (ver más abajo).
+1. Ve a la pestaña **[Releases](../../releases)** del repositorio y descarga el zip del addon
+   que quieras (p. ej. `brush_focus_ring-0.7.4.zip`).
 2. En Blender: **Edit → Preferences → Get Extensions → ⌄ → Install from Disk…**
 3. Selecciona el zip. Se instala y activa automáticamente.
 
 Puedes instalar solo los que te interesen; no dependen entre sí.
+
+> El botón verde **Code → Download ZIP** descarga el repositorio entero (código fuente), que
+> **no** es instalable en Blender directamente. Los zips listos para instalar están en *Releases*.
 
 ---
 
