@@ -1,73 +1,95 @@
-# Subdiv Levels
+# Blender Sculpt Addons
 
-Addon (extensión) para **Blender 5.x** que replica el flujo de niveles de subdivisión de **ZBrush / Nomad Sculpt**: subir y bajar de nivel con atajos, añadir un nivel nuevo y borrar niveles superiores, todo sin salir del modo Sculpt.
+Colección de **extensiones para Blender 5.x** que llevan al modo Sculpt flujos de trabajo de
+**ZBrush / Nomad Sculpt** que Blender no ofrece de serie: niveles de subdivisión, paleta de
+subtools y anillo doble de pincel.
 
-El addon no reimplementa la subdivisión: orquesta el modificador **Multiresolution (Multires)** de Blender con una UX rápida (atajos + panel lateral), que es justo lo que Blender no ofrece de serie.
+Cada addon es independiente, autocontenido e instalable por separado. No reimplementan
+funcionalidad que Blender ya tiene: se apoyan en sus sistemas nativos (Multires, colecciones,
+pinceles) y aportan la **UX rápida** que falta para esculpir con comodidad.
 
-## Características
+> Blender **5.0+** (desarrollados y probados en 5.1.2) · Licencia **GPL-3.0-or-later** ·
+> Interfaz traducida a 8 idiomas.
 
-- **Ctrl+D inteligente**: si no hay modificador Multires, lo crea; si estás en el nivel máximo, añade un nivel nuevo (Catmull-Clark); si no, sube un nivel.
-- **Shift+D** baja un nivel y **Alt+D** sube un nivel, sin destruir el detalle esculpido (como en ZBrush).
-- Panel en la barra lateral (N) del Viewport 3D, pestaña **Subdiv**, visible en modo Sculpt y modo Objeto.
-- Borrar niveles superiores y aplicar la base desde el panel (con confirmación).
-- Estadísticas: nivel actual / total y recuento aproximado de caras del nivel activo.
-- Sincronización opcional de `levels`, `sculpt_levels` y `render_levels`.
-- Atajos configurables y desactivables desde las preferencias del addon.
-- Límite de seguridad configurable (`max_auto_level`, por defecto 7) para no crear niveles nuevos por accidente.
+---
 
-## Atajos por defecto
+## Addons
 
-| Atajo | Acción | Modos |
-|---|---|---|
-| `Ctrl+D` | Subdividir inteligente (crear / subir / añadir nivel) | Sculpt y Objeto |
-| `Shift+D` | Bajar un nivel | Sculpt |
-| `Alt+D` | Subir un nivel | Sculpt |
+| Addon | Qué aporta | Versión | Documentación |
+|---|---|---|---|
+| **[Subdiv Levels](subdiv_levels/)** | Niveles de subdivisión estilo ZBrush/Nomad sobre el modificador Multires: subir/bajar/añadir nivel con atajos y panel | 0.3.0 | [Doc](subdiv_levels/docs/Subdiv%20Levels%20-%20Documentacion.md) |
+| **[Sculpt Subtools](sculpt_subtools/)** | Paleta de subtools estilo ZBrush: saltar, aislar, agrupar, unir/partir, booleanas y miniaturas | 0.4.0 | [Doc](sculpt_subtools/docs/Sculpt%20Subtools%20-%20Documentacion.md) · [Especificación](sculpt_subtools/docs/Sculpt%20Subtools%20-%20Especificacion.md) |
+| **[Brush Focus Ring](brush_focus_ring/)** | Doble circunferencia de pincel (foco + influencia) y atajos de encoder de macropad | 0.7.4 | [Doc](brush_focus_ring/docs/Brush%20Focus%20Ring%20-%20Documentacion.md) |
 
-> `Shift+D` y `Alt+D` solo se registran en modo Sculpt para no colisionar con Duplicar en modo Objeto.
-
-## Requisitos
-
-- Blender **5.0** o superior (desarrollado y probado en 5.1.2).
+---
 
 ## Instalación
 
-1. Descarga el zip de la extensión (`subdiv_levels-x.y.z.zip`) desde [Releases](../../releases), o genera uno comprimiendo la carpeta `subdiv_levels/` (el `blender_manifest.toml` debe quedar en la raíz del zip).
-2. En Blender: `Edit → Preferences → Get Extensions → ⌄ (menú desplegable) → Install from Disk…` y selecciona el zip.
-3. Activa la extensión **Subdiv Levels** si no se activa automáticamente.
+Cada addon se instala como una extensión independiente:
 
-## Uso
+1. Descarga o genera el zip del addon (ver más abajo).
+2. En Blender: **Edit → Preferences → Get Extensions → ⌄ → Install from Disk…**
+3. Selecciona el zip. Se instala y activa automáticamente.
 
-1. Selecciona una malla y entra en modo Sculpt.
-2. Pulsa `Ctrl+D` para crear el Multires y subir al nivel 1 en un solo gesto.
-3. Sigue pulsando `Ctrl+D` para añadir niveles a medida que necesites más detalle.
-4. Usa `Shift+D` / `Alt+D` para moverte entre niveles sin perder el esculpido.
-5. En el panel **Subdiv** (tecla N) tienes el slider de nivel, las opciones avanzadas (borrar niveles superiores, aplicar base, modo de subdivisión) y las estadísticas.
+Puedes instalar solo los que te interesen; no dependen entre sí.
 
-## Estructura del proyecto
+---
 
-```
-subdiv_levels/
-├── blender_manifest.toml   # manifest de extensión (Blender 4.2+)
-├── __init__.py             # register()/unregister()
-├── operators.py            # operadores (sculpt_ext.*)
-├── ui.py                   # panel lateral
-├── keymaps.py              # registro/limpieza de atajos
-├── preferences.py          # AddonPreferences
-└── utils.py                # helpers de Multires
-tests/
-└── smoke_test.py           # test sin GUI
-```
+## Generar los zips
 
-## Desarrollo y tests
-
-Smoke test sin interfaz gráfica:
+Los paquetes se construyen con el script incluido, que lee la versión de cada
+`blender_manifest.toml` y excluye `__pycache__` / `.pyc`:
 
 ```
-blender --background --factory-startup --python tests/smoke_test.py
+python build_addons.py                 # los addons por defecto
+python build_addons.py subdiv_levels   # solo uno
 ```
 
-El script activa el addon, crea un cubo, subdivide tres veces, baja niveles y borra los superiores, verificando el estado del modificador en cada paso. Sale con código distinto de 0 si algo falla.
+Los zips se escriben en `dist/` (ignorada por git). Alternativa nativa de Blender:
+
+```
+blender --command extension build --source-dir subdiv_levels --output-dir dist
+```
+
+---
+
+## Estructura del repositorio
+
+```
+.
+├── subdiv_levels/      # addon: niveles de subdivisión (Multires)
+│   └── docs/
+├── sculpt_subtools/    # addon: paleta de subtools
+│   └── docs/
+├── brush_focus_ring/   # addon: anillo doble de pincel
+│   └── docs/
+├── build_addons.py     # empaquetador de extensiones a dist/
+├── PUBLICACION.md      # notas de publicación
+├── LICENSE             # GPL-3.0-or-later
+└── README.md           # este índice
+```
+
+Cada carpeta de addon sigue el formato de **extensión de Blender 4.2+** (`blender_manifest.toml`
+en la raíz, sin `bl_info`), con `register()` / `unregister()` limpios y traducciones propias.
+
+---
+
+## Desarrollo
+
+- **Compatibilidad 5.x**: acceso a propiedades por atributo (no tipo diccionario), sin importar
+  módulos internos, registro con listas de clases y limpieza total en `unregister()`.
+- **Tests**: cada addon con lógica verificable trae un smoke test sin GUI:
+  ```
+  blender --background --factory-startup --python <addon>/tests/smoke_test.py
+  ```
+- **Idiomas**: cada addon incluye `translations.py` con español, francés, alemán, chino
+  simplificado, japonés, coreano, portugués e italiano.
+
+---
 
 ## Licencia
 
-Este proyecto se distribuye bajo la licencia **GPL-3.0-or-later**, como requiere el ecosistema de addons de Blender. Consulta el archivo [LICENSE](LICENSE) para el texto completo.
+Todo el proyecto se distribuye bajo **GPL-3.0-or-later**, como requiere el ecosistema de addons
+de Blender. Texto completo en [LICENSE](LICENSE).
+
+Mantenedor: Dani · danielsolerdev@gmail.com
