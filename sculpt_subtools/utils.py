@@ -15,6 +15,7 @@ class _FallbackPrefs:
     sort_mode = 'MANUAL'
     show_thumbnails = True
     auto_thumbnails = True
+    auto_thumbnail_interval = 60.0
     thumbnail_scale = 3.0
 
 

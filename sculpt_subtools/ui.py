@@ -5,6 +5,7 @@ Dibuja el árbol Tool > Grupos > SubTools a mano (Blender no ofrece UIList en
 """
 
 import bpy
+from bpy.app.translations import pgettext_iface as iface_
 
 from . import preview, utils
 
@@ -24,7 +25,7 @@ class SCULPTEXT_PT_subtools(bpy.types.Panel):
         obj = context.object
 
         if obj is None or obj.type != 'MESH':
-            layout.label(text="Selecciona una malla", icon='INFO')
+            layout.label(text="Select a mesh", icon='INFO')
             return
 
         prefs = utils.get_prefs()
@@ -44,34 +45,34 @@ class SCULPTEXT_PT_subtools(bpy.types.Panel):
 
         # Crear / espejar.
         row = layout.row(align=True)
-        row.operator_menu_enum("sculpt_ext.subtool_add", "kind", text="Añadir",
+        row.operator_menu_enum("sculpt_ext.subtool_add", "kind", text="Add",
                                icon='ADD')
-        row.operator_menu_enum("sculpt_ext.subtool_mirror", "axis", text="Espejar",
+        row.operator_menu_enum("sculpt_ext.subtool_mirror", "axis", text="Mirror",
                                icon='MOD_MIRROR')
 
         # Acciones sobre el subtool activo.
         col = layout.column(align=True)
         r = col.row(align=True)
-        r.operator("sculpt_ext.subtool_duplicate", text="Duplicar", icon='DUPLICATE')
-        r.operator("sculpt_ext.subtool_delete", text="Borrar", icon='TRASH')
+        r.operator("sculpt_ext.subtool_duplicate", text="Duplicate", icon='DUPLICATE')
+        r.operator("sculpt_ext.subtool_delete", text="Delete", icon='TRASH')
         r = col.row(align=True)
-        r.operator("sculpt_ext.subtool_move", text="Subir", icon='TRIA_UP').direction = 'UP'
-        r.operator("sculpt_ext.subtool_move", text="Bajar", icon='TRIA_DOWN').direction = 'DOWN'
+        r.operator("sculpt_ext.subtool_move", text="Up", icon='TRIA_UP').direction = 'UP'
+        r.operator("sculpt_ext.subtool_move", text="Down", icon='TRIA_DOWN').direction = 'DOWN'
         r = col.row(align=True)
-        r.operator("sculpt_ext.subtool_merge", text="Unir", icon='AUTOMERGE_ON')
+        r.operator("sculpt_ext.subtool_merge", text="Merge", icon='AUTOMERGE_ON')
 
         # Separar (splits).
         col = layout.column(align=True)
-        col.label(text="Separar en subtools:")
+        col.label(text="Split into subtools:")
         r = col.row(align=True)
-        r.operator("sculpt_ext.subtool_split_loose", text="Sueltas")
-        r.operator("sculpt_ext.subtool_split_mask", text="Máscara")
+        r.operator("sculpt_ext.subtool_split_loose", text="Loose Parts")
+        r.operator("sculpt_ext.subtool_split_mask", text="Mask")
         r.operator("sculpt_ext.subtool_split_faceset", text="Face Sets")
 
         # Acciones globales.
         row = layout.row(align=True)
-        row.operator("sculpt_ext.subtool_show_all", text="Mostrar todo", icon='HIDE_OFF')
-        row.operator("sculpt_ext.subtool_frame_active", text="Enmarcar", icon='VIEWZOOM')
+        row.operator("sculpt_ext.subtool_show_all", text="Show All", icon='HIDE_OFF')
+        row.operator("sculpt_ext.subtool_frame_active", text="Frame", icon='VIEWZOOM')
 
         # Nivel de Multires del subtool activo (integración con Subdiv Levels).
         mod = next((m for m in obj.modifiers if m.type == 'MULTIRES'), None)
@@ -89,29 +90,33 @@ class SCULPTEXT_PT_subtools(bpy.types.Panel):
         scene = context.scene
         box = layout.box()
         r = box.row(align=True)
-        r.label(text="Booleana", icon='MOD_BOOLEAN')
-        r.prop(scene, "subtool_bool_edit", text="Roles", toggle=True)
+        r.label(text="Boolean", icon='MOD_BOOLEAN')
 
         # Directas (usan la selección del viewport).
         r = box.row(align=True)
-        r.operator("sculpt_ext.subtool_bool_direct", text="Unión").op = 'UNION'
-        r.operator("sculpt_ext.subtool_bool_direct", text="Resta").op = 'DIFFERENCE'
-        r.operator("sculpt_ext.subtool_bool_direct", text="Insec.").op = 'INTERSECT'
+        r.operator("sculpt_ext.subtool_bool_direct", text="Union").op = 'UNION'
+        r.operator("sculpt_ext.subtool_bool_direct", text="Difference").op = 'DIFFERENCE'
+        r.operator("sculpt_ext.subtool_bool_direct", text="Intersect").op = 'INTERSECT'
 
         # Live boolean (usa los roles por subtool).
         if scene.subtool_bool_active:
-            box.operator("sculpt_ext.subtool_bool_preview", text="Quitar preview",
+            box.operator("sculpt_ext.subtool_bool_preview", text="Remove Preview",
                          icon='LOOP_BACK', depress=True)
         else:
-            box.operator("sculpt_ext.subtool_bool_preview", text="Preview en vivo",
+            box.operator("sculpt_ext.subtool_bool_preview", text="Live Preview",
                          icon='MOD_BOOLEAN')
-        box.operator("sculpt_ext.subtool_bool_apply", text="Aplicar booleana",
+        box.operator("sculpt_ext.subtool_bool_apply", text="Apply Boolean",
                      icon='CHECKMARK')
 
         # Pie: recuento.
         chain = utils.all_subtools(root, prefs.sort_mode)
         faces = len(obj.data.polygons)
-        layout.label(text=f"{len(chain)} subtools · {obj.name} ({faces} caras)")
+        layout.label(
+            text=iface_("{} subtools · {} ({} faces)").format(
+                len(chain), obj.name, faces
+            ),
+            translate=False,
+        )
 
     def _draw_collection(self, context, layout, coll, active_obj, prefs, depth):
         for o in utils.subtools_of(coll, prefs.sort_mode):
@@ -164,15 +169,17 @@ class SCULPTEXT_PT_subtools(bpy.types.Panel):
                              emboss=False)
         op.name = obj.name
 
-        if context.scene.subtool_bool_edit:
-            bool_icons = {
-                'NONE': 'RADIOBUT_OFF', 'ADD': 'ADD',
-                'SUBTRACT': 'REMOVE', 'INTERSECT': 'SELECT_INTERSECT',
-            }
-            op = bottom.operator("sculpt_ext.subtool_bool_cycle_op", text="",
-                                 icon=bool_icons[obj.subtool_bool_op],
-                                 depress=obj.subtool_bool_op != 'NONE')
+        # Roles booleanos siempre visibles en fila (estilo ZBrush): el rol
+        # activo queda resaltado y clic sobre él lo quita.
+        bool_icons = {
+            'ADD': 'ADD', 'SUBTRACT': 'REMOVE', 'INTERSECT': 'SELECT_INTERSECT',
+        }
+        for role in ('ADD', 'SUBTRACT', 'INTERSECT'):
+            op = bottom.operator("sculpt_ext.subtool_bool_set_op", text="",
+                                 icon=bool_icons[role],
+                                 depress=obj.subtool_bool_op == role)
             op.target = obj.name
+            op.role = role
 
         solo_on = context.scene.subtool_solo_active == obj.name
         solo_icon = 'PINNED' if solo_on else 'UNPINNED'

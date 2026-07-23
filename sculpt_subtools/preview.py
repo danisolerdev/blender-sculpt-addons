@@ -11,6 +11,7 @@ marcador de posición gris y nada falla. La validación visual real es en GUI.
 """
 
 import bpy
+from bpy.app.translations import pgettext_rpt as rpt_
 
 # Colección de previews del addon (creada en register()).
 _previews = None
@@ -250,10 +251,10 @@ def maybe_capture_many(context, objs) -> None:
 # --- Operador de refresco -----------------------------------------------------
 
 class SCULPTEXT_OT_subtool_thumbnails_refresh(bpy.types.Operator):
-    """Regenera las miniaturas de todos los subtools del Tool activo"""
+    """Regenerates the thumbnails of all the active Tool's subtools"""
 
     bl_idname = "sculpt_ext.subtool_thumbnails_refresh"
-    bl_label = "Refrescar miniaturas"
+    bl_label = "Refresh Thumbnails"
     bl_options = {'REGISTER'}
 
     @classmethod
@@ -263,16 +264,16 @@ class SCULPTEXT_OT_subtool_thumbnails_refresh(bpy.types.Operator):
 
     def execute(self, context):
         if bpy.app.background:
-            self.report({'WARNING'}, "Las miniaturas necesitan GPU (no en background)")
+            self.report({'WARNING'}, rpt_("Thumbnails require a GPU (not in background)"))
             return {'CANCELLED'}
         from . import utils
         root = utils.get_tool_root(context.object)
         subs = utils.all_subtools(root)
         done = _do_captures(context, subs)
         if done == 0:
-            self.report({'WARNING'}, "No se pudo generar ninguna miniatura")
+            self.report({'WARNING'}, rpt_("Could not generate any thumbnail"))
             return {'CANCELLED'}
-        self.report({'INFO'}, f"{done} miniaturas actualizadas")
+        self.report({'INFO'}, rpt_("{} thumbnails updated").format(done))
         return {'FINISHED'}
 
 

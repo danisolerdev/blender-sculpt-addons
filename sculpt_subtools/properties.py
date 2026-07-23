@@ -10,56 +10,50 @@ from bpy.props import BoolProperty, EnumProperty, IntProperty, StringProperty
 
 def register():
     bpy.types.Object.subtool_order = IntProperty(
-        name="Orden",
-        description="Posición del subtool dentro de su grupo",
+        name="Order",
+        description="Position of the subtool within its group",
         default=0,
     )
     bpy.types.Object.subtool_prev_hidden = BoolProperty(
-        name="Oculto previo",
-        description="Snapshot de visibilidad para restaurar tras salir de Solo",
+        name="Previously Hidden",
+        description="Visibility snapshot to restore after leaving Solo",
         default=False,
     )
     bpy.types.Object.subtool_bool_op = EnumProperty(
-        name="Rol booleano",
-        description="Cómo participa este subtool en la booleana en vivo",
+        name="Boolean Role",
+        description="How this subtool participates in the live boolean",
         items=(
-            ('NONE', "Ninguno", "No participa en la booleana"),
-            ('ADD', "Añadir", "Se une al resultado (unión)"),
-            ('SUBTRACT', "Restar", "Se resta del resultado (diferencia)"),
-            ('INTERSECT', "Intersecar", "Deja solo el volumen común (intersección)"),
+            ('NONE', "None", "Does not participate in the boolean"),
+            ('ADD', "Add", "Joins the result (union)"),
+            ('SUBTRACT', "Subtract", "Is subtracted from the result (difference)"),
+            ('INTERSECT', "Intersect", "Keeps only the common volume (intersection)"),
         ),
         default='NONE',
     )
     bpy.types.Object.subtool_is_bool_result = BoolProperty(
-        name="Resultado booleano",
-        description="Marca el objeto de resultado del preview en vivo",
+        name="Boolean Result",
+        description="Marks the live preview result object",
         default=False,
     )
     bpy.types.Collection.subtool_expanded = BoolProperty(
-        name="Expandido",
-        description="Si el grupo está desplegado en la paleta",
+        name="Expanded",
+        description="Whether the group is expanded in the palette",
         default=True,
     )
     bpy.types.Scene.subtool_solo_active = StringProperty(
-        name="Solo activo",
-        description="Nombre del subtool aislado (vacío = sin Solo)",
+        name="Active Solo",
+        description="Name of the isolated subtool (empty = no Solo)",
         default="",
     )
-    bpy.types.Scene.subtool_bool_edit = BoolProperty(
-        name="Modo booleana",
-        description="Mostrar los selectores de rol booleano en cada subtool",
-        default=False,
-    )
     bpy.types.Scene.subtool_bool_active = StringProperty(
-        name="Preview booleano",
-        description="Nombre del objeto de resultado del preview (vacío = sin preview)",
+        name="Boolean Preview",
+        description="Name of the preview result object (empty = no preview)",
         default="",
     )
 
 
 def unregister():
     del bpy.types.Scene.subtool_bool_active
-    del bpy.types.Scene.subtool_bool_edit
     del bpy.types.Scene.subtool_solo_active
     del bpy.types.Collection.subtool_expanded
     del bpy.types.Object.subtool_is_bool_result

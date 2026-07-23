@@ -16,57 +16,66 @@ class SculptSubtoolsPreferences(bpy.types.AddonPreferences):
     bl_idname = __package__
 
     switch_reenters_sculpt: BoolProperty(
-        name="Reentrar en Sculpt al saltar",
-        description="Al activar otro subtool desde Sculpt, volver a modo Sculpt "
-        "(si se desactiva, el salto deja el objeto en modo Objeto)",
+        name="Re-enter Sculpt when Jumping",
+        description="When activating another subtool from Sculpt, return to Sculpt mode "
+        "(if disabled, the jump leaves the object in Object mode)",
         default=True,
     )
     solo_includes_group: BoolProperty(
-        name="Solo incluye el grupo",
-        description="Al aislar (Solo), mantener visible todo el grupo del subtool, "
-        "no solo el objeto",
+        name="Solo Includes the Group",
+        description="When isolating (Solo), keep the subtool's whole group visible, "
+        "not just the object",
         default=False,
     )
     confirm_delete: BoolProperty(
-        name="Confirmar borrado",
-        description="Pedir confirmación antes de borrar un subtool",
+        name="Confirm Delete",
+        description="Asks for confirmation before deleting a subtool",
         default=True,
     )
     confirm_merge: BoolProperty(
-        name="Confirmar unión",
-        description="Pedir confirmación antes de unir subtools",
+        name="Confirm Merge",
+        description="Asks for confirmation before merging subtools",
         default=True,
     )
     enable_hotkeys: BoolProperty(
-        name="Activar atajos",
-        description="Registrar los atajos para ciclar subtools (Alt+↑ / Alt+↓)",
+        name="Enable Hotkeys",
+        description="Registers the hotkeys to cycle subtools (Alt+↑ / Alt+↓)",
         default=False,
         update=_update_hotkeys,
     )
     sort_mode: EnumProperty(
-        name="Orden de la lista",
-        description="Cómo ordenar los subtools dentro de cada grupo",
+        name="List Order",
+        description="How to sort the subtools within each group",
         items=(
-            ('MANUAL', "Manual", "Por el orden asignado (subir/bajar)"),
-            ('NAME', "Nombre", "Alfabético por nombre"),
+            ('MANUAL', "Manual", "By the assigned order (move up/down)"),
+            ('NAME', "Name", "Alphabetical by name"),
         ),
         default='MANUAL',
     )
     show_thumbnails: BoolProperty(
-        name="Mostrar miniaturas",
-        description="Dibujar una miniatura de cada subtool en la paleta "
-        "(estilo ZBrush). Requiere GPU",
+        name="Show Thumbnails",
+        description="Draws a thumbnail of each subtool in the palette "
+        "(ZBrush style). Requires GPU",
         default=True,
     )
     auto_thumbnails: BoolProperty(
-        name="Miniaturas automáticas",
-        description="Regenerar la miniatura al salir de un subtool y al "
-        "crear/duplicar/separar. Desactívalo si notas tirones al esculpir",
+        name="Automatic Thumbnails",
+        description="Regenerates the thumbnail automatically: when creating a mesh, "
+        "switching the active subtool, reordering, and periodically. Disable it "
+        "if sculpting stutters",
         default=True,
     )
+    auto_thumbnail_interval: FloatProperty(
+        name="Automatic Interval (s)",
+        description="How many seconds between recaptures of the active subtool's "
+        "thumbnail if no other event has occurred",
+        default=60.0,
+        min=5.0,
+        max=600.0,
+    )
     thumbnail_scale: FloatProperty(
-        name="Tamaño de miniatura",
-        description="Escala de la miniatura en la paleta",
+        name="Thumbnail Size",
+        description="Scale of the thumbnail in the palette",
         default=3.0,
         min=1.0,
         max=8.0,
@@ -86,6 +95,9 @@ class SculptSubtoolsPreferences(bpy.types.AddonPreferences):
         sub = col.column()
         sub.enabled = self.show_thumbnails
         sub.prop(self, "auto_thumbnails")
+        sub2 = sub.column()
+        sub2.enabled = self.auto_thumbnails
+        sub2.prop(self, "auto_thumbnail_interval")
         sub.prop(self, "thumbnail_scale")
         col.separator()
         col.prop(self, "enable_hotkeys")

@@ -1,6 +1,6 @@
 schema_version = "1.0.0"
 id = "sculpt_subtools"
-version = "0.2.3"
+version = "0.4.0"
 name = "Sculpt Subtools"
 tagline = "Paleta de subtools estilo ZBrush para Sculpt"
 maintainer = "Dani <danielsolerdev@gmail.com>"

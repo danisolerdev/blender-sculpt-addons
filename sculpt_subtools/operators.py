@@ -2,6 +2,7 @@
 
 import bmesh
 import bpy
+from bpy.app.translations import pgettext_rpt as rpt_
 from bpy.props import EnumProperty, IntProperty, StringProperty
 
 from . import preview, utils
@@ -76,10 +77,10 @@ def _make_active(context, obj):
 # --- Activar / ciclar ---------------------------------------------------------
 
 class SCULPTEXT_OT_subtool_activate(bpy.types.Operator):
-    """Hace activo este subtool (salta a él sin salir de Sculpt)"""
+    """Makes this subtool active (jumps to it without leaving Sculpt)"""
 
     bl_idname = "sculpt_ext.subtool_activate"
-    bl_label = "Activar subtool"
+    bl_label = "Activate Subtool"
     bl_options = {'REGISTER'}
 
     name: StringProperty()
@@ -91,7 +92,7 @@ class SCULPTEXT_OT_subtool_activate(bpy.types.Operator):
     def execute(self, context):
         obj = bpy.data.objects.get(self.name)
         if obj is None or obj.type != 'MESH':
-            self.report({'WARNING'}, "Subtool no encontrado")
+            self.report({'WARNING'}, rpt_("Subtool not found"))
             return {'CANCELLED'}
         if obj == context.object and not obj.hide_get():
             return {'CANCELLED'}  # ya es el subtool activo y visible
@@ -119,16 +120,16 @@ class SCULPTEXT_OT_subtool_activate(bpy.types.Operator):
 
 
 class SCULPTEXT_OT_subtool_cycle(bpy.types.Operator):
-    """Salta al subtool anterior o siguiente del Tool activo"""
+    """Jumps to the previous or next subtool of the active Tool"""
 
     bl_idname = "sculpt_ext.subtool_cycle"
-    bl_label = "Ciclar subtool"
+    bl_label = "Cycle Subtool"
     bl_options = {'REGISTER'}
 
     direction: EnumProperty(
         items=(
-            ('PREV', "Anterior", "Subtool anterior"),
-            ('NEXT', "Siguiente", "Subtool siguiente"),
+            ('PREV', "Previous", "Previous subtool"),
+            ('NEXT', "Next", "Next subtool"),
         ),
         default='NEXT',
     )
@@ -143,7 +144,7 @@ class SCULPTEXT_OT_subtool_cycle(bpy.types.Operator):
         root = utils.get_tool_root(obj)
         chain = utils.all_subtools(root, prefs.sort_mode)
         if obj not in chain or len(chain) < 2:
-            self.report({'INFO'}, "No hay otro subtool al que saltar")
+            self.report({'INFO'}, rpt_("No other subtool to jump to"))
             return {'CANCELLED'}
         idx = chain.index(obj)
         step = -1 if self.direction == 'PREV' else 1
@@ -155,10 +156,10 @@ class SCULPTEXT_OT_subtool_cycle(bpy.types.Operator):
 # --- Visibilidad / Solo -------------------------------------------------------
 
 class SCULPTEXT_OT_subtool_toggle_visible(bpy.types.Operator):
-    """Muestra u oculta este subtool"""
+    """Shows or hides this subtool"""
 
     bl_idname = "sculpt_ext.subtool_toggle_visible"
-    bl_label = "Visibilidad del subtool"
+    bl_label = "Subtool Visibility"
     bl_options = {'REGISTER'}
 
     name: StringProperty()
@@ -173,7 +174,7 @@ class SCULPTEXT_OT_subtool_toggle_visible(bpy.types.Operator):
 
 
 class SCULPTEXT_OT_subtool_solo(bpy.types.Operator):
-    """Aísla este subtool ocultando el resto (toggle)"""
+    """Isolates this subtool by hiding the rest (toggle)"""
 
     bl_idname = "sculpt_ext.subtool_solo"
     bl_label = "Solo"
@@ -214,10 +215,10 @@ class SCULPTEXT_OT_subtool_solo(bpy.types.Operator):
 # --- Duplicar / borrar --------------------------------------------------------
 
 class SCULPTEXT_OT_subtool_duplicate(bpy.types.Operator):
-    """Duplica el subtool activo"""
+    """Duplicates the active subtool"""
 
     bl_idname = "sculpt_ext.subtool_duplicate"
-    bl_label = "Duplicar subtool"
+    bl_label = "Duplicate Subtool"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -239,15 +240,15 @@ class SCULPTEXT_OT_subtool_duplicate(bpy.types.Operator):
         if was_sculpt:
             bpy.ops.object.mode_set(mode='SCULPT')
         _redraw(context)
-        self.report({'INFO'}, f"Duplicado: {dup.name}")
+        self.report({'INFO'}, rpt_("Duplicated: {}").format(dup.name))
         return {'FINISHED'}
 
 
 class SCULPTEXT_OT_subtool_delete(bpy.types.Operator):
-    """Borra el subtool activo"""
+    """Deletes the active subtool"""
 
     bl_idname = "sculpt_ext.subtool_delete"
-    bl_label = "Borrar subtool"
+    bl_label = "Delete Subtool"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -278,23 +279,23 @@ class SCULPTEXT_OT_subtool_delete(bpy.types.Operator):
             if was_sculpt:
                 bpy.ops.object.mode_set(mode='SCULPT')
         _redraw(context)
-        self.report({'INFO'}, "Subtool borrado")
+        self.report({'INFO'}, rpt_("Subtool deleted"))
         return {'FINISHED'}
 
 
 # --- Orden / grupos -----------------------------------------------------------
 
 class SCULPTEXT_OT_subtool_move(bpy.types.Operator):
-    """Sube o baja el subtool activo en su grupo"""
+    """Moves the active subtool up or down within its group"""
 
     bl_idname = "sculpt_ext.subtool_move"
-    bl_label = "Mover subtool"
+    bl_label = "Move Subtool"
     bl_options = {'REGISTER', 'UNDO'}
 
     direction: EnumProperty(
         items=(
-            ('UP', "Subir", "Mover arriba"),
-            ('DOWN', "Bajar", "Mover abajo"),
+            ('UP', "Up", "Move up"),
+            ('DOWN', "Down", "Move down"),
         ),
         default='UP',
     )
@@ -315,22 +316,26 @@ class SCULPTEXT_OT_subtool_move(bpy.types.Operator):
         idx = siblings.index(obj)
         swap = idx - 1 if self.direction == 'UP' else idx + 1
         if swap < 0 or swap >= len(siblings):
-            self.report({'INFO'}, "El subtool ya está en el extremo")
+            self.report({'INFO'}, rpt_("The subtool is already at the end"))
             return {'CANCELLED'}
         other = siblings[swap]
         obj.subtool_order, other.subtool_order = other.subtool_order, obj.subtool_order
+        # Condición 2: al reordenar, encolar los dos subtools para recaptura.
+        from . import auto
+        auto.mark_dirty_obj(obj)
+        auto.mark_dirty_obj(other)
         _redraw(context)
         return {'FINISHED'}
 
 
 class SCULPTEXT_OT_subtool_group_new(bpy.types.Operator):
-    """Crea un grupo (sub-colección) dentro del Tool activo"""
+    """Creates a group (sub-collection) inside the active Tool"""
 
     bl_idname = "sculpt_ext.subtool_group_new"
-    bl_label = "Nuevo grupo"
+    bl_label = "New Group"
     bl_options = {'REGISTER', 'UNDO'}
 
-    name: StringProperty(name="Nombre", default="Grupo")
+    name: StringProperty(name="Name", default="Group")
 
     @classmethod
     def poll(cls, context):
@@ -341,15 +346,15 @@ class SCULPTEXT_OT_subtool_group_new(bpy.types.Operator):
         group = bpy.data.collections.new(self.name)
         root.children.link(group)
         _redraw(context)
-        self.report({'INFO'}, f"Grupo creado: {group.name}")
+        self.report({'INFO'}, rpt_("Group created: {}").format(group.name))
         return {'FINISHED'}
 
 
 class SCULPTEXT_OT_subtool_move_to_group(bpy.types.Operator):
-    """Mueve el subtool activo al grupo indicado"""
+    """Moves the active subtool to the given group"""
 
     bl_idname = "sculpt_ext.subtool_move_to_group"
-    bl_label = "Mover a grupo"
+    bl_label = "Move to Group"
     bl_options = {'REGISTER', 'UNDO'}
 
     group: StringProperty()
@@ -362,7 +367,7 @@ class SCULPTEXT_OT_subtool_move_to_group(bpy.types.Operator):
         obj = context.object
         target = bpy.data.collections.get(self.group)
         if target is None:
-            self.report({'WARNING'}, "Grupo no encontrado")
+            self.report({'WARNING'}, rpt_("Group not found"))
             return {'CANCELLED'}
         if obj.name in target.objects:
             return {'CANCELLED'}
@@ -370,15 +375,15 @@ class SCULPTEXT_OT_subtool_move_to_group(bpy.types.Operator):
             c.objects.unlink(obj)
         target.objects.link(obj)
         _redraw(context)
-        self.report({'INFO'}, f"Movido a {target.name}")
+        self.report({'INFO'}, rpt_("Moved to {}").format(target.name))
         return {'FINISHED'}
 
 
 class SCULPTEXT_OT_subtool_toggle_expand(bpy.types.Operator):
-    """Pliega o despliega un grupo en la paleta"""
+    """Collapses or expands a group in the palette"""
 
     bl_idname = "sculpt_ext.subtool_toggle_expand"
-    bl_label = "Plegar/desplegar grupo"
+    bl_label = "Collapse/Expand Group"
     bl_options = {'REGISTER'}
 
     collection: StringProperty()
@@ -395,10 +400,10 @@ class SCULPTEXT_OT_subtool_toggle_expand(bpy.types.Operator):
 # --- Merge / split ------------------------------------------------------------
 
 class SCULPTEXT_OT_subtool_merge(bpy.types.Operator):
-    """Une los subtools seleccionados en el activo"""
+    """Merges the selected subtools into the active one"""
 
     bl_idname = "sculpt_ext.subtool_merge"
-    bl_label = "Unir subtools"
+    bl_label = "Merge Subtools"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -429,22 +434,22 @@ class SCULPTEXT_OT_subtool_merge(bpy.types.Operator):
         if was_sculpt:
             bpy.ops.object.mode_set(mode='SCULPT')
         if 'FINISHED' not in result:
-            self.report({'WARNING'}, "No se pudieron unir los subtools")
+            self.report({'WARNING'}, rpt_("Could not merge the subtools"))
             return {'CANCELLED'}
         _redraw(context)
         if has_multires:
             self.report({'WARNING'},
-                        "Subtools unidos; el Multires no se conserva al unir")
+                        rpt_("Subtools merged; the Multires is not preserved when merging"))
         else:
-            self.report({'INFO'}, "Subtools unidos")
+            self.report({'INFO'}, rpt_("Subtools merged"))
         return {'FINISHED'}
 
 
 class SCULPTEXT_OT_subtool_split_loose(bpy.types.Operator):
-    """Separa el subtool activo en sus partes sueltas"""
+    """Splits the active subtool into its loose parts"""
 
     bl_idname = "sculpt_ext.subtool_split_loose"
-    bl_label = "Separar por partes sueltas"
+    bl_label = "Split by Loose Parts"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -471,27 +476,29 @@ class SCULPTEXT_OT_subtool_split_loose(bpy.types.Operator):
             bpy.ops.object.mode_set(mode='SCULPT')
         _redraw(context)
         if new_objs:
-            self.report({'INFO'}, f"Separado en {len(new_objs) + 1} subtools")
+            self.report(
+                {'INFO'}, rpt_("Split into {} subtools").format(len(new_objs) + 1)
+            )
         else:
-            self.report({'INFO'}, "El subtool no tiene partes sueltas")
+            self.report({'INFO'}, rpt_("The subtool has no loose parts"))
         return {'FINISHED'}
 
 
 # --- Crear / espejar ----------------------------------------------------------
 
 class SCULPTEXT_OT_subtool_add(bpy.types.Operator):
-    """Añade una malla primitiva nueva como subtool del Tool activo"""
+    """Adds a new primitive mesh as a subtool of the active Tool"""
 
     bl_idname = "sculpt_ext.subtool_add"
-    bl_label = "Añadir subtool"
+    bl_label = "Add Subtool"
     bl_options = {'REGISTER', 'UNDO'}
 
     kind: EnumProperty(
         items=(
-            ('CUBE', "Cubo", "Añadir un cubo"),
-            ('SPHERE', "Esfera", "Añadir una esfera"),
-            ('CYLINDER', "Cilindro", "Añadir un cilindro"),
-            ('PLANE', "Plano", "Añadir un plano"),
+            ('CUBE', "Cube", "Add a cube"),
+            ('SPHERE', "Sphere", "Add a sphere"),
+            ('CYLINDER', "Cylinder", "Add a cylinder"),
+            ('PLANE', "Plane", "Add a plane"),
         ),
         default='CUBE',
     )
@@ -531,22 +538,22 @@ class SCULPTEXT_OT_subtool_add(bpy.types.Operator):
         if was_sculpt:
             bpy.ops.object.mode_set(mode='SCULPT')
         _redraw(context)
-        self.report({'INFO'}, f"Subtool añadido: {new_obj.name}")
+        self.report({'INFO'}, rpt_("Subtool added: {}").format(new_obj.name))
         return {'FINISHED'}
 
 
 class SCULPTEXT_OT_subtool_mirror(bpy.types.Operator):
-    """Crea una copia reflejada del subtool activo sobre un eje"""
+    """Creates a mirrored copy of the active subtool across an axis"""
 
     bl_idname = "sculpt_ext.subtool_mirror"
-    bl_label = "Espejar subtool"
+    bl_label = "Mirror Subtool"
     bl_options = {'REGISTER', 'UNDO'}
 
     axis: EnumProperty(
         items=(
-            ('X', "X", "Reflejar en el eje X"),
-            ('Y', "Y", "Reflejar en el eje Y"),
-            ('Z', "Z", "Reflejar en el eje Z"),
+            ('X', "X", "Mirror across the X axis"),
+            ('Y', "Y", "Mirror across the Y axis"),
+            ('Z', "Z", "Mirror across the Z axis"),
         ),
         default='X',
     )
@@ -578,17 +585,17 @@ class SCULPTEXT_OT_subtool_mirror(bpy.types.Operator):
         if was_sculpt:
             bpy.ops.object.mode_set(mode='SCULPT')
         _redraw(context)
-        self.report({'INFO'}, f"Espejo creado: {dup.name}")
+        self.report({'INFO'}, rpt_("Mirror created: {}").format(dup.name))
         return {'FINISHED'}
 
 
 # --- Acciones globales --------------------------------------------------------
 
 class SCULPTEXT_OT_subtool_show_all(bpy.types.Operator):
-    """Muestra todos los subtools del Tool y desactiva el Solo"""
+    """Shows all the Tool's subtools and turns off Solo"""
 
     bl_idname = "sculpt_ext.subtool_show_all"
-    bl_label = "Mostrar todos"
+    bl_label = "Show All Subtools"
     bl_options = {'REGISTER'}
 
     @classmethod
@@ -605,10 +612,10 @@ class SCULPTEXT_OT_subtool_show_all(bpy.types.Operator):
 
 
 class SCULPTEXT_OT_subtool_frame_active(bpy.types.Operator):
-    """Encuadra la vista sobre el subtool activo"""
+    """Frames the view on the active subtool"""
 
     bl_idname = "sculpt_ext.subtool_frame_active"
-    bl_label = "Enmarcar activo"
+    bl_label = "Frame Active"
     bl_options = {'REGISTER'}
 
     @classmethod
@@ -619,7 +626,7 @@ class SCULPTEXT_OT_subtool_frame_active(bpy.types.Operator):
         try:
             bpy.ops.view3d.view_selected('INVOKE_DEFAULT')
         except RuntimeError as error:
-            self.report({'WARNING'}, f"No se pudo encuadrar: {error}")
+            self.report({'WARNING'}, rpt_("Could not frame: {}").format(error))
             return {'CANCELLED'}
         return {'FINISHED'}
 
@@ -627,10 +634,10 @@ class SCULPTEXT_OT_subtool_frame_active(bpy.types.Operator):
 # --- Splits avanzados (bmesh sobre atributos) ---------------------------------
 
 class SCULPTEXT_OT_subtool_split_faceset(bpy.types.Operator):
-    """Separa el subtool activo en un subtool por cada Face Set"""
+    """Splits the active subtool into one subtool per Face Set"""
 
     bl_idname = "sculpt_ext.subtool_split_faceset"
-    bl_label = "Separar por Face Sets"
+    bl_label = "Split by Face Sets"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -642,14 +649,14 @@ class SCULPTEXT_OT_subtool_split_faceset(bpy.types.Operator):
         me = obj.data
         attr = me.attributes.get(FACE_SET_ATTR)
         if attr is None:
-            self.report({'WARNING'}, "La malla no tiene Face Sets")
+            self.report({'WARNING'}, rpt_("The mesh has no Face Sets"))
             return {'CANCELLED'}
 
         groups = {}
         for i in range(len(me.polygons)):
             groups.setdefault(attr.data[i].value, []).append(i)
         if len(groups) < 2:
-            self.report({'INFO'}, "Solo hay un Face Set: nada que separar")
+            self.report({'INFO'}, rpt_("There is only one Face Set: nothing to split"))
             return {'CANCELLED'}
 
         was_sculpt = context.mode == 'SCULPT'
@@ -676,15 +683,18 @@ class SCULPTEXT_OT_subtool_split_faceset(bpy.types.Operator):
         if was_sculpt:
             bpy.ops.object.mode_set(mode='SCULPT')
         _redraw(context)
-        self.report({'INFO'}, f"Separado en {len(new_objs)} subtools por Face Set")
+        self.report(
+            {'INFO'},
+            rpt_("Split into {} subtools by Face Set").format(len(new_objs)),
+        )
         return {'FINISHED'}
 
 
 class SCULPTEXT_OT_subtool_split_mask(bpy.types.Operator):
-    """Separa la zona enmascarada del subtool activo a un subtool nuevo"""
+    """Splits the masked area of the active subtool into a new subtool"""
 
     bl_idname = "sculpt_ext.subtool_split_mask"
-    bl_label = "Separar por máscara"
+    bl_label = "Split by Mask"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -696,7 +706,7 @@ class SCULPTEXT_OT_subtool_split_mask(bpy.types.Operator):
         me = obj.data
         attr = me.attributes.get(MASK_ATTR)
         if attr is None:
-            self.report({'WARNING'}, "La malla no tiene máscara de Sculpt")
+            self.report({'WARNING'}, rpt_("The mesh has no Sculpt mask"))
             return {'CANCELLED'}
 
         mask = [attr.data[i].value for i in range(len(me.vertices))]
@@ -708,10 +718,10 @@ class SCULPTEXT_OT_subtool_split_mask(bpy.types.Operator):
                 masked_faces.append(poly.index)
 
         if not masked_faces:
-            self.report({'INFO'}, "No hay zona enmascarada")
+            self.report({'INFO'}, rpt_("There is no masked area"))
             return {'CANCELLED'}
         if len(masked_faces) == len(me.polygons):
-            self.report({'INFO'}, "Toda la malla está enmascarada: nada que separar")
+            self.report({'INFO'}, rpt_("The whole mesh is masked: nothing to split"))
             return {'CANCELLED'}
 
         was_sculpt = context.mode == 'SCULPT'
@@ -728,17 +738,17 @@ class SCULPTEXT_OT_subtool_split_mask(bpy.types.Operator):
         if was_sculpt:
             bpy.ops.object.mode_set(mode='SCULPT')
         _redraw(context)
-        self.report({'INFO'}, "Zona enmascarada separada a un subtool nuevo")
+        self.report({'INFO'}, rpt_("Masked area split into a new subtool"))
         return {'FINISHED'}
 
 
 # --- Integración con Multires / Subdiv Levels ---------------------------------
 
 class SCULPTEXT_OT_subtool_multires_step(bpy.types.Operator):
-    """Sube o baja el nivel de Multires del subtool activo"""
+    """Raises or lowers the Multires level of the active subtool"""
 
     bl_idname = "sculpt_ext.subtool_multires_step"
-    bl_label = "Nivel Multires"
+    bl_label = "Multires Level"
     bl_options = {'REGISTER', 'UNDO'}
 
     delta: IntProperty(default=1)
@@ -760,7 +770,6 @@ class SCULPTEXT_OT_subtool_multires_step(bpy.types.Operator):
 
 # --- Booleanas ----------------------------------------------------------------
 
-_BOOL_OPS = ('NONE', 'ADD', 'SUBTRACT', 'INTERSECT')
 _BOOL_OP_TO_MOD = {'ADD': 'UNION', 'SUBTRACT': 'DIFFERENCE', 'INTERSECT': 'INTERSECT'}
 # Orden de aplicación: primero unir (sembrar volumen), luego intersecar, luego restar.
 _BOOL_ORDER = {'ADD': 0, 'INTERSECT': 1, 'SUBTRACT': 2}
@@ -796,30 +805,38 @@ def _remove_object(obj):
         bpy.data.meshes.remove(me)
 
 
-class SCULPTEXT_OT_subtool_bool_cycle_op(bpy.types.Operator):
-    """Cambia el rol booleano del subtool: Ninguno → Añadir → Restar → Intersecar"""
+class SCULPTEXT_OT_subtool_bool_set_op(bpy.types.Operator):
+    """Sets this subtool's boolean role (click the active role to clear it)"""
 
-    bl_idname = "sculpt_ext.subtool_bool_cycle_op"
-    bl_label = "Rol booleano"
+    bl_idname = "sculpt_ext.subtool_bool_set_op"
+    bl_label = "Boolean Role"
     bl_options = {'REGISTER', 'UNDO'}
 
     target: StringProperty()
+    role: EnumProperty(
+        items=(
+            ('ADD', "Add", "Joins the result (union)"),
+            ('SUBTRACT', "Subtract", "Is subtracted from the result (difference)"),
+            ('INTERSECT', "Intersect", "Keeps only the common volume (intersection)"),
+        ),
+        default='ADD',
+    )
 
     def execute(self, context):
         obj = bpy.data.objects.get(self.target)
         if obj is None:
             return {'CANCELLED'}
-        idx = _BOOL_OPS.index(obj.subtool_bool_op)
-        obj.subtool_bool_op = _BOOL_OPS[(idx + 1) % len(_BOOL_OPS)]
+        # Clic en el rol ya activo = quitarlo (vuelve a NONE).
+        obj.subtool_bool_op = 'NONE' if obj.subtool_bool_op == self.role else self.role
         _redraw(context)
         return {'FINISHED'}
 
 
 class SCULPTEXT_OT_subtool_bool_preview(bpy.types.Operator):
-    """Activa/desactiva el preview en vivo de la booleana del Tool"""
+    """Toggles the Tool's live boolean preview"""
 
     bl_idname = "sculpt_ext.subtool_bool_preview"
-    bl_label = "Preview booleano en vivo"
+    bl_label = "Live Boolean Preview"
     bl_options = {'REGISTER'}
 
     @classmethod
@@ -842,7 +859,7 @@ class SCULPTEXT_OT_subtool_bool_preview(bpy.types.Operator):
 
         operands = _bool_operands(root)
         if not any(o.subtool_bool_op == 'ADD' for o in operands):
-            self.report({'WARNING'}, "Marca al menos un subtool como 'Añadir'")
+            self.report({'WARNING'}, rpt_("Mark at least one subtool as 'Add'"))
             return {'CANCELLED'}
 
         was_sculpt = context.mode == 'SCULPT'
@@ -858,15 +875,17 @@ class SCULPTEXT_OT_subtool_bool_preview(bpy.types.Operator):
         if was_sculpt:
             bpy.ops.object.mode_set(mode='SCULPT')
         _redraw(context)
-        self.report({'INFO'}, f"Preview booleano: {len(operands)} operandos")
+        self.report(
+            {'INFO'}, rpt_("Boolean preview: {} operands").format(len(operands))
+        )
         return {'FINISHED'}
 
 
 class SCULPTEXT_OT_subtool_bool_apply(bpy.types.Operator):
-    """Hornea la booleana: aplica el resultado y elimina los operandos"""
+    """Bakes the boolean: applies the result and removes the operands"""
 
     bl_idname = "sculpt_ext.subtool_bool_apply"
-    bl_label = "Aplicar booleana"
+    bl_label = "Apply Boolean"
     bl_options = {'REGISTER', 'UNDO'}
 
     @classmethod
@@ -878,7 +897,7 @@ class SCULPTEXT_OT_subtool_bool_apply(bpy.types.Operator):
         root = utils.get_tool_root(context.object)
         operands = _bool_operands(root)
         if not any(o.subtool_bool_op == 'ADD' for o in operands):
-            self.report({'WARNING'}, "Marca al menos un subtool como 'Añadir'")
+            self.report({'WARNING'}, rpt_("Mark at least one subtool as 'Add'"))
             return {'CANCELLED'}
 
         was_sculpt = context.mode == 'SCULPT'
@@ -896,7 +915,9 @@ class SCULPTEXT_OT_subtool_bool_apply(bpy.types.Operator):
             try:
                 bpy.ops.object.modifier_apply(modifier=mod_name)
             except RuntimeError as error:
-                self.report({'WARNING'}, f"No se pudo aplicar {mod_name}: {error}")
+                self.report(
+                    {'WARNING'}, rpt_("Could not apply {}: {}").format(mod_name, error)
+                )
 
         res.subtool_is_bool_result = False
         res.subtool_bool_op = 'NONE'
@@ -907,22 +928,22 @@ class SCULPTEXT_OT_subtool_bool_apply(bpy.types.Operator):
         if was_sculpt:
             bpy.ops.object.mode_set(mode='SCULPT')
         _redraw(context)
-        self.report({'INFO'}, "Booleana aplicada")
+        self.report({'INFO'}, rpt_("Boolean applied"))
         return {'FINISHED'}
 
 
 class SCULPTEXT_OT_subtool_bool_direct(bpy.types.Operator):
-    """Booleana directa: aplica al subtool activo el resto de seleccionados y los borra"""
+    """Direct boolean: applies the other selected subtools to the active one and deletes them"""
 
     bl_idname = "sculpt_ext.subtool_bool_direct"
-    bl_label = "Booleana directa"
+    bl_label = "Direct Boolean"
     bl_options = {'REGISTER', 'UNDO'}
 
     op: EnumProperty(
         items=(
-            ('UNION', "Unión", "Unir al activo"),
-            ('DIFFERENCE', "Resta", "Restar del activo"),
-            ('INTERSECT', "Intersección", "Dejar el volumen común"),
+            ('UNION', "Union", "Union with the active"),
+            ('DIFFERENCE', "Difference", "Subtract from the active"),
+            ('INTERSECT', "Intersection", "Keep the common volume"),
         ),
         default='DIFFERENCE',
     )
@@ -939,7 +960,9 @@ class SCULPTEXT_OT_subtool_bool_direct(bpy.types.Operator):
         others = [o for o in context.selected_objects
                   if o.type == 'MESH' and o != active]
         if not others:
-            self.report({'WARNING'}, "Selecciona el activo y al menos otro subtool")
+            self.report(
+                {'WARNING'}, rpt_("Select the active and at least one other subtool")
+            )
             return {'CANCELLED'}
 
         was_sculpt = context.mode == 'SCULPT'
@@ -970,21 +993,21 @@ class SCULPTEXT_OT_subtool_bool_direct(bpy.types.Operator):
         _redraw(context)
         if failed:
             self.report({'WARNING'},
-                        "Alguna booleana no se aplicó (¿Multires en la pila del activo?)")
+                        rpt_("Some boolean was not applied (Multires in the active's stack?)"))
         else:
-            self.report({'INFO'}, f"Booleana {self.op} aplicada")
+            self.report({'INFO'}, rpt_("Boolean {} applied").format(self.op))
         return {'FINISHED'}
 
 
 class SCULPTEXT_OT_subtool_rename(bpy.types.Operator):
-    """Renombra este subtool"""
+    """Renames this subtool"""
 
     bl_idname = "sculpt_ext.subtool_rename"
-    bl_label = "Renombrar subtool"
+    bl_label = "Rename Subtool"
     bl_options = {'REGISTER', 'UNDO'}
 
     target: StringProperty()
-    new_name: StringProperty(name="Nombre")
+    new_name: StringProperty(name="Name")
 
     def invoke(self, context, event):
         obj = bpy.data.objects.get(self.target)
@@ -999,7 +1022,7 @@ class SCULPTEXT_OT_subtool_rename(bpy.types.Operator):
     def execute(self, context):
         obj = bpy.data.objects.get(self.target)
         if obj is None:
-            self.report({'WARNING'}, "Subtool no encontrado")
+            self.report({'WARNING'}, rpt_("Subtool not found"))
             return {'CANCELLED'}
         if self.new_name:
             obj.name = self.new_name
@@ -1028,7 +1051,7 @@ classes = (
     SCULPTEXT_OT_subtool_split_faceset,
     SCULPTEXT_OT_subtool_split_mask,
     SCULPTEXT_OT_subtool_multires_step,
-    SCULPTEXT_OT_subtool_bool_cycle_op,
+    SCULPTEXT_OT_subtool_bool_set_op,
     SCULPTEXT_OT_subtool_bool_preview,
     SCULPTEXT_OT_subtool_bool_apply,
     SCULPTEXT_OT_subtool_bool_direct,
